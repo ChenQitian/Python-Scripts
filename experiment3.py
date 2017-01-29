@@ -24,7 +24,7 @@ def regret_vs_T(model,algorithms,T_vals,simulations = 10):
 experiment = Experiment(3)
 experiment.log_code()
                   
-simulations = 10000
+simulations = 3000
 N = 50
 m = 2
 epsilon = .3

@@ -69,6 +69,7 @@ class ParallelCausal(object):
             self.success += y*xij
             
         self.infrequent = self.estimate_infrequent(h)
+        h=T-h
         n = int(float(h)/len(self.infrequent))
         self.trials[self.infrequent] = n # note could be improved by adding to rather than reseting observation results - does not change worst case. 
         self.success[self.infrequent] = model.sample_multiple(self.infrequent,n)
@@ -100,14 +101,7 @@ class ParallelCausal_addSR(object):
             self.success += y*xij
             
         self.infrequent = self.estimate_infrequent(h) # self.infrequent =set A
-        
-#        n = int(float(h)/len(self.infrequent))
-#        self.trials[self.infrequent] = n # note could be improved by adding to rather than reseting observation results - does not change worst case. 
-#        self.success[self.infrequent] = model.sample_multiple(self.infrequent,n)
-#        self.u = np.true_divide(self.success,self.trials)
-#        self.r = self.u - model.get_costs()                
-#        self.best_action = argmax_rand(self.r)
-        
+                
         # the second stage: use successive rejection
         h=T-h  # duo yi ge shi yi ge       
         actions=self.infrequent
@@ -142,6 +136,102 @@ class ParallelCausal_addSR(object):
         infrequent = s_indx[0:m_hat]
         return infrequent
 
+class GeneralGraph_addSR(object):
+    label="proposed algorithm2"
+    def __init__(self,truncate = "clip"):
+        self.truncate = truncate
+        #self.label = "Algorithm 2-"+truncate
+
+    def run(self,T,model):
+        eta = model.eta
+#        m = model.m
+        n = len(eta)        
+        actions = range(n)
+        u = np.zeros(n)        
+
+        logkbar=0.5+np.sum(np.ones(n-1)/[range(2,n+1)])
+        
+        narray=np.floor(np.true_divide((T-n)/float(logkbar),range(n,0,-1)))
+        narray=np.hstack([0,narray])
+        model.actions_index=actions
+        countT=0
+        for k in xrange(n-1):
+            tempT=(n-k)*(narray[k+1]-narray[k])
+            countT += tempT
+            temp_eta,temp_m=model.find_eta()
+            for t in xrange(tempT):
+                a=np.random.choice(actions,p=temp_eta)
+                x,y=model.sample(a)
+                pa = model.P(x)
+                r=model.R(pa,temp_eta)
+                if self.truncate=="zero":
+                    self.tempB=sqrt(temp_m*tempT/log(2.0*tempT*(n-k)))
+                    z=(r<self.tempB)*r*y
+                elif self.truncate =="clip":
+                    z=np.minimum(r,self.tempB)*y
+                else:
+                    z=r*y
+                u+=z
+            u1=u/float(countT)
+            u1=np.array(u1)
+            tempworst=np.argmin(u1[model.actions_index])
+            model.actions_index=model.actions_index.pop(tempworst)
+        self.best_actions=model.actions_index
+        return max(model.expected_rewards) - model.expected_rewards[self.best_action]          
+class GeneralGraph_addSR_simple(object):
+    label="proposed algorithm2"
+    def __init__(self,truncate = "clip"):
+        self.truncate = truncate
+        #self.label = "Algorithm 2-"+truncate
+
+    def run(self,T,model):
+        eta = model.eta
+        eta=eta+0.1/model.K
+        eta=eta/eta.sum()
+        n = len(eta)  
+        model.actions_index=range(n)
+        m=model.analytic_eta_changeActions()
+        
+
+
+        u = np.zeros(n)        
+
+        logkbar=0.5+np.sum(np.ones(n-1)/[range(2,n+1)])
+        
+        narray=np.floor(np.true_divide((T-n)/float(logkbar),range(n,0,-1)))
+        narray=np.hstack([0,narray])
+
+        countT=0
+        temp_eta=eta
+        temp_m=m
+        for k in xrange(n-2):
+            tempT=np.int((n-k)*(narray[k+1]-narray[k]))
+            countT += tempT
+            for t in xrange(tempT):
+                
+                a=np.random.choice(range(n),p=temp_eta)
+                x,y=model.sample(a)
+                pa = model.P(x)
+                r=model.R(pa,temp_eta)
+                if self.truncate=="zero":
+                    self.tempB=sqrt(temp_m*tempT/log(2.0*tempT*(n-k)))
+                    z=(r<self.tempB)*r*y
+                elif self.truncate =="clip":
+                    z=np.minimum(r,self.tempB)*y
+                else:
+                    z=r*y
+                u+=z
+            u1=u/float(countT)
+            u1=np.array(u1)
+            tempworst=np.argmin(u1[model.actions_index])
+            
+            model.actions_index.pop(tempworst)
+            if k < n-2:
+                temp_m=model.analytic_eta_changeActions()
+                temp_eta[tempworst]=0
+                temp_eta=temp_eta/temp_eta.sum()
+        self.best_actions=model.actions_index
+        return max(model.expected_rewards) - model.expected_rewards[self.best_actions]          
     
     
 class ThompsonSampling(object):

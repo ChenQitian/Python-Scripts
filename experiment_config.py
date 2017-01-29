@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
-from algorithms import GeneralCausal,  ParallelCausal, SuccessiveRejects,AlphaUCB,RandomArm,ThompsonSampling,ParallelCausal_addSR
+from algorithms import GeneralCausal,  ParallelCausal, SuccessiveRejects,AlphaUCB,RandomArm,ThompsonSampling,ParallelCausal_addSR,GeneralGraph_addSR_simple
 import cPickle as pickle
 import os
 
@@ -30,9 +30,9 @@ class Experiment(object):
         self.REGRET_LABEL = "Regret"
         self.HORIZON_LABEL = "T"
         self.M_LABEL = "m(q)"
-        self.markers=['s', 'o', 'D', '*',"^","p","+"]
-        self.colors = ["red","green","blue","purple","cyan","orange","black"]
-        self.algorithms = [ParallelCausal,GeneralCausal,SuccessiveRejects,AlphaUCB,RandomArm,ThompsonSampling,ParallelCausal_addSR]
+        self.markers=['s', 'o', 'D', '*',"^","p","+","2"]
+        self.colors = ["red","green","blue","purple","cyan","orange","black","yellow"]
+        self.algorithms = [ParallelCausal,GeneralCausal,SuccessiveRejects,AlphaUCB,RandomArm,ThompsonSampling,ParallelCausal_addSR,GeneralGraph_addSR_simple]
         
         try:
             os.makedirs("results")

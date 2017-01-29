@@ -173,7 +173,7 @@ class Parallel(Model):
         self.pX = np.vstack((1.0-q,q))
         self.set_epsilon(epsilon)
         self.eta,self.m = self.analytic_eta()
-    
+        self.actions_index=range(self.N)
     @classmethod
     def create(cls,N,m,epsilon):
         q = cls.part_balanced_q(N,m)
@@ -253,7 +253,21 @@ class Parallel(Model):
         eta[unbalanced] = 1.0/(2*mq)
         return eta,mq
 
-      
+    def analytic_eta_changeActions(self):        
+        actionss=self.actions_index
+        tempN=len(actionss)
+        if self.N*2 in actionss:
+            actionss.remove(self.N*2)
+        eta = np.zeros(tempN)
+        eta[-1] =.5
+        probs = self.pX[:,:].reshape((self.N*2,)) # reshape such that first N are do(Xi=0)
+        probs = probs[actionss]
+        sort_order = np.argsort(probs)
+        ordered = probs[sort_order]
+        mq = Parallel.calculate_m(ordered)
+#        unbalanced = sort_order[0:mq]
+#        np.array()
+        return mq
            
 class ParallelConfounded(Model):
     """ Represents a parallel bandit with one common confounder. Z ->(X1 ... XN) and (X1,...,XN) -> Y 

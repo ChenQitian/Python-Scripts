@@ -1,0 +1,45 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Sep 20 16:47:47 2016
+
+@author: finn
+"""
+import numpy as np
+from models import Parallel
+from algorithms import GeneralCausal, ParallelCausal, SuccessiveRejects,AlphaUCB,ThompsonSampling,ParallelCausal_addSR,GeneralGraph_addSR_simple
+from experiment_config import Experiment
+
+def regret_vs_m(algorithms,m_vals,N,T,epsilon,simulations):  
+    
+    models = []     
+    global regret
+    regret = np.zeros((len(algorithms),len(m_vals),simulations))
+    for m_indx,m in enumerate(m_vals):
+        model = Parallel.create(N,m,epsilon)
+        models.append(model)
+        print "built model {0}".format(m)
+        for s in xrange(simulations):
+            for a_indx,algorithm in enumerate(algorithms):
+                regret[a_indx,m_indx,s] = algorithm.run(T,model)
+    
+
+    return models, regret
+
+experiment = Experiment(1)
+experiment.log_code()
+          
+N = 30
+epsilon = .3
+simulations = 30
+T = 800
+#algorithms = [GeneralCausal(truncate='None'),ParallelCausal(),SuccessiveRejects(),AlphaUCB(2),ThompsonSampling(),ParallelCausal_addSR()]
+algorithms = [ParallelCausal(),ParallelCausal_addSR(),GeneralCausal(truncate='None'),GeneralGraph_addSR_simple(truncate='None')]
+m_vals = range(2,N,2)
+   
+models, regret = regret_vs_m(algorithms,m_vals,N,T,epsilon,simulations = simulations)
+#result=regret_vs_m(algorithms,m_vals,N,T,epsilon,simulations = simulations)
+experiment.plot_regret(regret,m_vals,"m",algorithms,legend_loc="lower right")
+
+
+
+    

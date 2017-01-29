@@ -7,7 +7,7 @@ Created on Wed Sep 21 11:30:34 2016
 import numpy as np
 from math import sqrt,ceil
 from models import Parallel
-from algorithms import GeneralCausal, ParallelCausal, SuccessiveRejects, AlphaUCB, ThompsonSampling
+from algorithms import GeneralCausal, ParallelCausal, SuccessiveRejects, AlphaUCB, ThompsonSampling,ParallelCausal_addSR
 from experiment_config import now_string, Experiment
 
 
@@ -29,7 +29,7 @@ experiment = Experiment(2)
 experiment.log_code()
 
 N= 50
-simulations = 10000
+simulations = 5000
 a = 9.0
 m = 2
 model = Parallel.create(N,m,.1)
@@ -38,7 +38,7 @@ Tmin = int(ceil(4*model.K/a))
 Tmax = 10*model.K
 T_vals = range(Tmin,Tmax,100)
 
-algorithms = [GeneralCausal(truncate='None'),ParallelCausal(),SuccessiveRejects(),AlphaUCB(2),ThompsonSampling()]
+algorithms = [GeneralCausal(truncate='None'),ParallelCausal(),SuccessiveRejects(),AlphaUCB(2),ThompsonSampling(),ParallelCausal_addSR()]
 
 regret = regret_vs_T_vary_epsilon(model,algorithms,T_vals,simulations = simulations)
 finished = now_string()
