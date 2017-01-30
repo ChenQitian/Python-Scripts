@@ -186,25 +186,22 @@ class GeneralGraph_addSR_simple(object):
 
     def run(self,T,model):
         eta = model.eta
-        eta=eta+0.1/model.K
-        eta=eta/eta.sum()
         n = len(eta)  
-        model.actions_index=range(n)
-        m=model.analytic_eta_changeActions()
-        
-
-
+        model.actions_index=list(np.where(eta!=0)[0])
+        ini_n=len(model.actions_index)
+        m=model.m
         u = np.zeros(n)        
 
-        logkbar=0.5+np.sum(np.ones(n-1)/[range(2,n+1)])
+        logkbar=0.5+np.sum(np.ones(ini_n-1)/[range(2,ini_n+1)])
         
-        narray=np.floor(np.true_divide((T-n)/float(logkbar),range(n,0,-1)))
+        narray=np.floor(np.true_divide((T-ini_n)/float(logkbar),range(ini_n,0,-1)))
         narray=np.hstack([0,narray])
 
         countT=0
         temp_eta=eta
         temp_m=m
-        for k in xrange(n-2):
+        for k in xrange(ini_n-1):
+
             tempT=np.int((n-k)*(narray[k+1]-narray[k]))
             countT += tempT
             for t in xrange(tempT):
@@ -227,7 +224,7 @@ class GeneralGraph_addSR_simple(object):
             
             model.actions_index.pop(tempworst)
             if k < n-2:
-                temp_m=model.analytic_eta_changeActions()
+#                temp_m=model.analytic_eta_changeActions()
                 temp_eta[tempworst]=0
                 temp_eta=temp_eta/temp_eta.sum()
         self.best_actions=model.actions_index
